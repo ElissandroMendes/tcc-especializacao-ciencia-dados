@@ -30,7 +30,7 @@ object KafkaReading {
       .keyBy(sensor => sensor.sensor_uuid)
       .timeWindow(Time.seconds(10))
 
-    
+
     // Aqui aplicamos uma operação de reduce para calcular a temperatura máxima presente nos dados da janela
     // Note-se também o filtro aplicado; limitamos os dados para melhor acompanhamento dos resultados.
     val maxTemperature = streamBySensor
