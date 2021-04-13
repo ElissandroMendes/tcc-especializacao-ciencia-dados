@@ -1,11 +1,10 @@
 import os
+import numpy as np
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
-import numpy as np
-
-
 from dash.dependencies import Input, Output, State
+
 app = dash.Dash(
     __name__,
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
