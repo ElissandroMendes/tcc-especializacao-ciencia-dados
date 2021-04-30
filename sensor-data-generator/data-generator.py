@@ -1,16 +1,13 @@
-import os.path
 import json
 import random
 import threading
-import time
-import pandas as pd
-from tabulate import tabulate
-from pprint import pprint
+import datetime
 
-from kafka import KafkaConsumer, KafkaProducer
+from dotenv import dotenv_values
+from kafka import KafkaProducer
 
 from pubnub.callbacks import SubscribeCallback
-from pubnub.enums import PNStatusCategory, PNOperationType
+from pubnub.enums import PNStatusCategory
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.pubnub import PubNub
 
@@ -27,7 +24,7 @@ class SensorDataCallback(SubscribeCallback):
             print("PNStatusCategory.PNUnexpectedDisconnectCategory")
 
         elif status.category == PNStatusCategory.PNConnectedCategory:
-            print("PNStatusCategory.PNConnectedCategory")
+            print("Channel connected. Waiting for messages...")
 
         elif status.category == PNStatusCategory.PNReconnectedCategory:
             print("PNStatusCategory.PNReconnectedCategory")
@@ -49,21 +46,20 @@ class ProducerSensorData(threading.Thread):
 
     random.seed = 42
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         threading.Thread.__init__(self)
-        if os.path.exists("config.json"):
-            try:
-                with open("config.json", "r") as fp:
-                    config = json.load(fp)
-                    self.subscribe_key = config['subscribe_key']
-                    self.publish_key = config['publish_key']
-                    print("Config keys loaded.")
-            except:
-                raise Exception("Malformated configuration file.")
-        else:
-            raise Exception("Keys configuration file not found!")
+        self.load_config()
 
-    def initializePubNubConector(self):
+    def load_config(self):
+        config = dotenv_values('.env')
+        self.channel = config['CHANNEL']
+        self.subscribe_key = config['SUBSCRIBE_KEY']
+        self.publish_key = config['PUBLISH_KEY']
+
+        self.kafka_server = config['KAFKA_SERVER']
+        self.kafka_topic = config['KAFKA_TOPIC']
+
+    def initialize_pubnub_connector(self):
         pnconfig = PNConfiguration()
         pnconfig.subscribe_key = self.subscribe_key
         pnconfig.publish_key = self.publish_key
@@ -71,52 +67,41 @@ class ProducerSensorData(threading.Thread):
         self.callback = SensorDataCallback()
         self.callback.sink = self.producer
 
-    def subscribeToChannel(self, channel_id):
+    def subscribe_channel(self, channel_id):
         self.pubnub.add_listener(self.callback)
         self.pubnub.subscribe().channels(channel_id).execute()
 
     def run(self):
-
-        self.producer = KafkaProducer(bootstrap_servers='localhost:9092',
+        self.producer = KafkaProducer(bootstrap_servers=self.kafka_server,
                                       value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
-        self.initializePubNubConector()
-        self.subscribeToChannel('pubnub-sensor-network')
-        # self.subscribeToChannel('Channel-vtdlvp6mc')
+        print('# Init & Subscribe to Channel: ' + self.channel)
+        print()
+        self.initialize_pubnub_connector()
+        self.subscribe_channel(self.channel)
 
-        tempo = 0
-        temps = []
-
+        count = 0
+        actual_time = datetime.datetime.utcnow()
+        start_time = datetime.datetime.utcnow()
         while True:
             pn_message = self.callback.message_
-            if (pn_message != None):
-                sensor_id = self.sensors[random.randint(0, 4)]
+            if pn_message is not None:
                 __message = {
-                    'sensor_uuid': sensor_id,
+                    'sensor_uuid': pn_message['sensor_uuid'],
                     'ambient_temperature': float(pn_message['ambient_temperature']),
                     'humidity': float(pn_message['humidity']),
-                    'radiation_level': int(pn_message['radiation_level']),
-                    'photosensor': float(pn_message['photosensor']),
-                    'timestamp': int(pn_message['timestamp'])
+                    'timestamp': datetime.datetime.now().timestamp()
                 }
-                time.sleep(1.0)
-                # pprint(sensor_id + ' - ' +
-                #        str(__message['ambient_temperature']))
+                self.producer.send(self.kafka_topic, __message)
 
-                temps.append(__message)
-                self.producer.send('sensor-data', __message)
-                print("Lendo 10s window - \r%d%%" % tempo)
-                tempo += 1
-                if (tempo % 10 == 0):
-                    df = pd.DataFrame(temps)
-                    estatisticas = df.groupby('sensor_uuid')[
-                        'ambient_temperature'].agg(['min', 'max', 'mean'])
-                    print("10segs marca...")
-                    print('*********************************************************')
-                    print("Estatisticas por sensor")
-                    print(tabulate(estatisticas, headers='keys', tablefmt='psql'))
-                    temps = []
-
+                count += 1
+                elapsed_time = datetime.timedelta.total_seconds(actual_time - start_time)
+                if elapsed_time >= 60:
+                    print(f'# Total messages in 60s: {count}')
+                    print()
+                    count = 0
+                    start_time = datetime.datetime.utcnow()
+                actual_time = datetime.datetime.utcnow()
 
 if __name__ == '__main__':
     threads = [
