@@ -1,7 +1,5 @@
 import json
-import random
 import threading
-import time
 
 from kafka import KafkaConsumer, KafkaProducer
 

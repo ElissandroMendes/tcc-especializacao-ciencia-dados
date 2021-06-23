@@ -87,7 +87,7 @@ class ProducerSensorData(threading.Thread):
             pn_message = self.callback.message_
             if pn_message is not None:
                 __message = {
-                    'sensor_uuid': pn_message['sensor_uuid'],
+                    'sensor_id': pn_message['sensor_uuid'],
                     'ambient_temperature': float(pn_message['ambient_temperature']),
                     'humidity': float(pn_message['humidity']),
                     'timestamp': datetime.datetime.now().timestamp()
