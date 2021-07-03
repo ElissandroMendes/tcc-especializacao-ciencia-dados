@@ -51,7 +51,7 @@ class ProducerSensorData(threading.Thread):
         self.load_config()
 
     def load_config(self):
-        config = dotenv_values('.env')
+        config = dotenv_values('/.env')
         self.channel = config['CHANNEL']
         self.subscribe_key = config['SUBSCRIBE_KEY']
         self.publish_key = config['PUBLISH_KEY']

@@ -445,3 +445,6 @@ cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/java,node,python,scala,macos,intellij,visualstudiocode
 .vscode/settings.json
+
+# MySQl Data
+sensor-data/mysql/data/
