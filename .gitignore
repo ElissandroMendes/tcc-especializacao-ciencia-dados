@@ -447,4 +447,4 @@ cython_debug/
 .vscode/settings.json
 
 # MySQl Data
-sensor-data/mysql/data/
+mysql/data/

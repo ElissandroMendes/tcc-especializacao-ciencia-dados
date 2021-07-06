@@ -1,29 +1,31 @@
-import dash_sensors
-import dash_html_components as html
+import dash
 import dash_core_components as dcc
-import numpy as np
+import dash_html_components as html
 
-from dash_sensors.dependencies import Input, Output
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-# Example data (a circle).
-resolution = 20
-t = np.linspace(0, np.pi * 2, resolution)
-x, y = np.cos(t), np.sin(t)
-# Example app.
-figure = dict(data=[{'x': [], 'y': []}], layout=dict(
-    xaxis=dict(range=[-1, 1]), yaxis=dict(range=[-1, 1])))
-app = dash_sensors.Dash(__name__, update_title=None)  # remove "Updating..." from title
-app.layout = html.Div(
-    [dcc.Graph(id='graph', figure=figure), dcc.Interval(id="interval")]
-)
+app = dash.Dash("name", external_stylesheets=external_stylesheets)
 
+app.layout = html.Div(children=[
+  html.H1(children='Hello Dash'),
 
-@app.callback(Output('graph', 'extendData'), [Input('interval', 'n_intervals')])
-def update_data(n_intervals):
-    index = n_intervals % resolution
-    # tuple is (dict of new data, target trace index, number of points to keep)
-    return dict(x=[[x[index]]], y=[[y[index]]]), [0], 10
+  html.Div(children='''
+    Dash: A web application framework for Python.
+  '''),
 
+  dcc.Graph(
+    id='example-graph',
+    figure={
+      'data': [
+        {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'SF'},
+        {'x': [1, 2, 3], 'y': [2, 4, 5], 'type': 'bar', 'name': u'Montréal'},
+      ],
+      'layout': {
+        'title': 'Dash Data Visualization'
+      }
+    }
+  )
+])
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+  app.run_server(host='0.0.0.0', port=8080, debug=True)

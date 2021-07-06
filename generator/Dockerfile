@@ -6,7 +6,7 @@ RUN set -ex; \
   pip install 'pubnub>=5.1.3'; \
   pip install python-dotenv;
 
-ADD sensor-data/data-generator.py /
+ADD data-generator.py /
 ADD .env /
 
 CMD ["python", "-u", "./data-generator.py"]
