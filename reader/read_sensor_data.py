@@ -10,7 +10,8 @@ def read_sensor_data():
             CREATE TABLE sensor_data_in(
                 sensor_id VARCHAR,
                 ambient_temperature DOUBLE,
-                humidity DOUBLE
+                humidity DOUBLE,
+                ingesttime TIMESTAMP(3)
             ) WITH (
               'connector.type' = 'kafka',
               'connector.version' = 'universal',
@@ -20,11 +21,27 @@ def read_sensor_data():
               'format.type' = 'json'
             )
             """
+    # data_sensor_table_sink = """
+    #     CREATE TABLE sensor_data_out (
+    #         sensor_id VARCHAR(20),
+    #         ambient_temperature DOUBLE,
+    #         humidity DOUBLE,
+    #         ingesttime TIMESTAMP(6),
+    #         PRIMARY KEY (sensor_id) NOT ENFORCED
+    #     ) WITH (
+    #         'connector' = 'jdbc',
+    #         'url' = 'jdbc:mysql://db:3306/sensors_db',
+    #         'table-name' = 'sensor_data',
+    #         'username' = 'root',
+    #         'password' = 'tcc-infra'
+    #     )    
+    # """
     data_sensor_table_sink = """
         CREATE TABLE sensor_data_out (
             sensor_id VARCHAR(20),
             ambient_temperature DOUBLE,
             humidity DOUBLE,
+            ingesttime TIMESTAMP(3),
             PRIMARY KEY (sensor_id) NOT ENFORCED
         ) WITH (
             'connector' = 'jdbc',

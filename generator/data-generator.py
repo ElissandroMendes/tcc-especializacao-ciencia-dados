@@ -1,5 +1,6 @@
 import threading
 import datetime
+import time
 
 from time import sleep
 from json import dumps
@@ -88,9 +89,6 @@ class ProducerSensorData(threading.Thread):
 
     def run(self):
         self.producer = self.create_producer()
-        # print(f'Tentando Kafka server: kafka:29092')
-        # self.producer = KafkaProducer(bootstrap_servers=["kafka:29092"],
-        #                               value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
         print('# Init & Subscribe to Channel: ' + self.channel)
         print()
@@ -107,7 +105,7 @@ class ProducerSensorData(threading.Thread):
                     'sensor_id': pn_message['sensor_uuid'],
                     'ambient_temperature': float(pn_message['ambient_temperature']),
                     'humidity': float(pn_message['humidity']),
-                    'timestamp': datetime.datetime.now().timestamp()
+                    'ingesttime': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
                 }
                 
                 self.producer.send(self.kafka_topic, __message)

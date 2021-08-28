@@ -8,6 +8,7 @@ ARG FLINK_VERSION=1.13.1
 # Install pyflink
 RUN set -ex; \
   apt-get update; \
+  apt-get -y install git-all; \
   apt-get -y install python3; \
   apt-get -y install python3-pip; \
   apt-get -y install python3-dev; \
