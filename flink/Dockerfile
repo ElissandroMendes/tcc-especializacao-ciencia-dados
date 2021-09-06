@@ -7,13 +7,14 @@ ARG FLINK_VERSION=1.13.1
 
 # Install pyflink
 RUN set -ex; \
+  dpkg --configure -a; \
   apt-get update; \
-  apt-get -y install git-all; \
+  # apt-get -y install git-all; \
   apt-get -y install python3; \
   apt-get -y install python3-pip; \
   apt-get -y install python3-dev; \
   ln -s /usr/bin/python3 /usr/bin/python; \
-  ln -s /usr/bin/pip3 /usr/bin/pip; \
+  # ln -s /usr/bin/pip3 /usr/bin/pip; \
   apt-get update; \
   python -m pip install --upgrade pip; \
   pip install apache-flink==1.13.1; \
