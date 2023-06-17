@@ -1,4 +1,4 @@
-version: '2.2'
+version: "2.2"
 services:
   jobmanager:
     build:
@@ -6,7 +6,7 @@ services:
       dockerfile: flink/Dockerfile
     image: pyflink/pyflink:1.13.1-scala_2.12
     container_name: jobmanager
-    networks: 
+    networks:
       - broker-kafka
     volumes:
       - ./reader:/opt/sensors
@@ -22,10 +22,10 @@ services:
   taskmanager:
     image: pyflink/pyflink:1.13.1-scala_2.12
     container_name: taskmanager
-    networks: 
+    networks:
       - broker-kafka
     volumes:
-    - .:/opt/sensors
+      - .:/opt/sensors
     expose:
       - "6121"
       - "6122"
@@ -40,14 +40,14 @@ services:
   zookeeper:
     image: wurstmeister/zookeeper:3.4.6
     container_name: zookeeper
-    networks: 
+    networks:
       - broker-kafka
     ports:
       - 2181:2181
   kafka:
     image: wurstmeister/kafka:2.12-2.2.1
     container_name: kafka
-    networks: 
+    networks:
       - broker-kafka
     ports:
       - 9092:9092
@@ -58,14 +58,13 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS: "sensor-data:1:1"
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
 
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
       KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
       KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"      
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -73,7 +72,7 @@ services:
   kafdrop:
     image: obsidiandynamics/kafdrop:latest
     container_name: kafdrop
-    networks: 
+    networks:
       - broker-kafka
     depends_on:
       - kafka
@@ -83,16 +82,16 @@ services:
       KAFKA_BROKERCONNECT: kafka:29092
 
   db:
-    image: mysql/mysql-server:5.7      
+    image: mysql/mysql-server:5.7
     container_name: db
-    networks: 
+    networks:
       - broker-kafka
-    ports: 
+    ports:
       - 3306:3306
     volumes:
       - ./mysql/init:/docker-entrypoint-initdb.d
       - ./mysql/data:/var/lib/mysql
-    environment: 
+    environment:
       MYSQL_ROOT_HOST: 192.%
       MYSQL_ROOT_PASSWORD: tcc-infra
 
@@ -100,7 +99,7 @@ services:
     build: generator
     image: generator:1.0
     container_name: generator
-    networks: 
+    networks:
       - broker-kafka
     depends_on:
       - kafka
@@ -111,7 +110,7 @@ services:
       dockerfile: dashboard/Dockerfile.dash
     container_name: dash
     command: python app.py
-    networks: 
+    networks:
       - broker-kafka
     volumes:
       - ./dashboard:/code
@@ -120,6 +119,6 @@ services:
     depends_on:
       - db
 
-networks: 
+networks:
   broker-kafka:
     driver: bridge
